@@ -1,27 +1,37 @@
 import 'package:flutter/material.dart';
-import 'package:note_app/database/note_database.dart'; // Import DatabaseCatatan
-import 'package:note_app/models/note.dart'; // Import Folder model
-import 'package:note_app/pages/halaman_catatan.dart'; // Import MahasiswaDetailPage
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:note_app/database/note_database.dart';
+import 'package:note_app/models/note.dart';
+import 'package:note_app/pages/halaman_folder.dart';
+import 'package:note_app/widgets/note_card.dart';
+import 'package:note_app/pages/detail_note.dart';
+import 'package:curved_navigation_bar/curved_navigation_bar.dart';
+import 'package:note_app/pages/add_note.dart';
+import 'package:provider/provider.dart';
+import 'theme_provider.dart';
 
-class CatatanPage extends StatefulWidget {
-  final VoidCallback? refreshCallback;
 
-  CatatanPage({this.refreshCallback});
+class HalamanCatatan extends StatefulWidget {
+  final Folder folder;
+
+  HalamanCatatan({required this.folder});
 
   @override
-  _CatatanPageState createState() => _CatatanPageState();
+  State<HalamanCatatan> createState() => _HalamanCatatanState();
 }
 
-class _CatatanPageState extends State<CatatanPage> {
-  late List<Folder>? _folders;
+class _HalamanCatatanState extends State<HalamanCatatan> {
+  late List<Note> _notes = [];
   var _isLoading = false;
+  int _currentIndex = 0;
 
-  Future<void> _refreshFolders() async {
+  Future<void> _refreshNotes() async {
     setState(() {
       _isLoading = true;
     });
 
-    _folders = await DatabaseCatatan.instance.getAllFolders();
+    _notes = await DatabaseCatatan.instance
+        .getNotesByFolder(widget.folder.folderId!);
 
     setState(() {
       _isLoading = false;
@@ -31,282 +41,146 @@ class _CatatanPageState extends State<CatatanPage> {
   @override
   void initState() {
     super.initState();
-    _refreshFolders();
-  }
-
-  _showAddDialog(BuildContext context, Folder folder) {
-    TextEditingController _folderNameController = TextEditingController(text: folder.namaFolder);
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: Color(0xFF35374B),
-          contentPadding: EdgeInsets.zero,
-          content: Container(
-            width: 400,
-            decoration: BoxDecoration(
-              color: Color(0xFF35374B),
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    color: Color(0xFF50727B),
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(10.0),
-                      topRight: Radius.circular(10.0),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 8.0),
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            'Edit Folder            ',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18.0,
-                            ),
-                          ),
-                        ),
-                      ),
-                      IconButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                        icon: Icon(
-                          Icons.close,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Color(0xFF35374B),
-                    borderRadius: BorderRadius.only(
-                      bottomLeft: Radius.circular(8.0),
-                      bottomRight: Radius.circular(8.0),
-                    ),
-                  ),
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: TextField(
-                          controller: _folderNameController,
-                          decoration: InputDecoration(
-                            hintText: "Nama Folder",
-                            hintStyle: TextStyle(color: Colors.grey),
-                            filled: true,
-                            fillColor: Color(0xFF50727B),
-                          ),
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            ElevatedButton(
-                              onPressed: () async {
-                                if (folder.folderId != null) {
-                                  await DatabaseCatatan.instance.deleteFolder(folder.folderId!);
-                                  widget.refreshCallback?.call();
-                                  Navigator.of(context).pop();
-                                  _refreshFolders();
-                                }
-                              },
-                              child: Text('Hapus'),
-                              style: ButtonStyle(
-                                backgroundColor: MaterialStateProperty.all<Color>(Colors.red),
-                                foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
-                              ),
-                            ),
-                            SizedBox(width: 16),
-                            ElevatedButton(
-                              onPressed: () async {
-                                String updatedFolderName = _folderNameController.text;
-                                if (folder.folderId != null) {
-                                  await DatabaseCatatan.instance.updateFolder(folder.folderId!, updatedFolderName);
-                                  widget.refreshCallback?.call();
-                                  Navigator.of(context).pop();
-                                  _refreshFolders();
-                                }
-                              },
-                              child: Text('Selesai'),
-                              style: ButtonStyle(
-                                backgroundColor: MaterialStateProperty.all<Color>(Color(0xFF50727B)),
-                                foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
+    _refreshNotes();
   }
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
     return Scaffold(
-      backgroundColor: Color(0xFF35374B),
-      body: RefreshIndicator(
-        onRefresh: _refreshFolders,
-        child: Container(
-          width: 430,
-          height: 932,
-          clipBehavior: Clip.antiAlias,
-          decoration: BoxDecoration(color: Color(0xFF35374B)),
-          child: Stack(
+      
+        backgroundColor: themeProvider.isDarkMode ? const Color.fromARGB(255, 30, 30, 30) : Colors.white,
+      body: Stack(
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Positioned(
-                left: -4,
-                top: 0,
-                child: Container(
-                  width: 437,
-                  height: 58,
-                  decoration: BoxDecoration(color: Color(0xFF344955)),
-                  child: Stack(
-                    children: [
-                      Positioned(
-                        left: 391.94,
-                        top: 22.85,
-                        child: Container(
-                          width: 28.35,
-                          height: 14.94,
-                          child: Stack(
+              Container(
+                height: 60,
+                color: Color(0xFF78A083),
+              ),
+              Expanded(
+                child: Stack(
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(top: 16.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              // Child stack content here
+                              IconButton(
+                                icon: Icon(Icons.arrow_back,
+                                    color: Color(0xFF78A083)),
+                                onPressed: () async {
+                                  // Kembali ke halaman folder
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => CatatanPage()),
+                                  );
+                                },
+                              ),
+                              Text(
+                                widget.folder.namaFolder,
+                                style: TextStyle(
+                                  color: Color(0xFF78A083),
+                                  fontSize: 25.0,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(width: 48.0),
                             ],
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 140,
-                top: 85,
-                child: SizedBox(
-                  width: 125,
-                  height: 28,
-                  child: Text(
-                    'Folder',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Color(0xFF78A083),
-                      fontSize: 30,
-                      fontFamily: 'Inter',
-                      fontWeight: FontWeight.w700,
-                      height: 0.02,
-                      letterSpacing: -0.24,
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 20,
-                top: 80,
-                right: 20,
-                bottom: 20,
-                child: _isLoading
-                    ? Center(child: CircularProgressIndicator())
-                    : _folders == null || _folders!.isEmpty
-                        ? Center(child: Text('Data Folder Kosong!'))
-                        : ListView.builder(
-                            itemCount: _folders!.length,
-                            itemBuilder: (context, index) {
-                              final folder = _folders![index];
-                              return GestureDetector(
-                                onTap: () async {
-                                  await Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => HalamanCatatan(folder: folder),
-                                    ),
-                                  );
-                                },
-                                child: Container(
-                                  width: 50,
-                                  height: 86,
-                                  padding: EdgeInsets.all(8),
-                                  margin: EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: Color(0xFF344955),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              ' ${folder.namaFolder}',
-                                              style: TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.bold,
-                                                color: Color(0xFF78A083),
+                        Expanded(
+                          child: _isLoading
+                              ? Center(child: CircularProgressIndicator())
+                              : _notes.isEmpty
+                                  ? Center(
+                                      child: Text('Notes Kosong!',
+                                          style: TextStyle(
+                                              color: Color(0xFF78A083))),
+                                    )
+                                  : StaggeredGridView.countBuilder(
+                                      crossAxisCount: 2,
+                                      itemCount: _notes.length,
+                                      itemBuilder: (context, index) {
+                                        final note = _notes[index];
+                                        return GestureDetector(
+                                          onTap: () async {
+                                            await Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    NoteDetailPage(
+                                                        id: note.noteId!),
                                               ),
-                                            ),
-                                            SizedBox(height: 8),
-                                            FutureBuilder<int>(
-                                              future: DatabaseCatatan.instance.countNotesInFolder(folder.folderId!),
-                                              builder: (context, snapshot) {
-                                                if (snapshot.connectionState == ConnectionState.done) {
-                                                  if (snapshot.hasError) {
-                                                    return Text(
-                                                      'Error',
-                                                      style: TextStyle(color: Colors.red),
-                                                    );
-                                                  } else {
-                                                    return Text(
-                                                      '${snapshot.data} Catatan',
-                                                      style: TextStyle(color: Colors.grey),
-                                                    );
-                                                  }
-                                                } else {
-                                                  return CircularProgressIndicator();
-                                                }
-                                              },
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      IconButton(
-                                        icon: Icon(Icons.menu, color: Color(0xFF78A083)),
-                                        onPressed: () {
-                                          _showAddDialog(context, folder);
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
+                                            );
+                                            _refreshNotes();
+                                          },
+                                          child: NoteCardWidget(
+                                              note: note, index: index),
+                                        );
+                                      },
+                                      staggeredTileBuilder: (int index) {
+                                        if (index == 0) {
+                                          return StaggeredTile.fit(1);
+                                        } else if (index == 1 || index == 2) {
+                                          return StaggeredTile.count(1, 0.8);
+                                        } else {
+                                          return StaggeredTile.fit(1);
+                                        }
+                                      },
+                                      mainAxisSpacing: 4.0,
+                                      crossAxisSpacing: 4.0,
+                                    ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
-        ),
+        ],
+      ),
+      bottomNavigationBar: CurvedNavigationBar(
+        backgroundColor: themeProvider.isDarkMode ? const Color.fromARGB(255, 30, 30, 30) : Colors.white,
+        buttonBackgroundColor: Color(0xFF78A083),
+        color: Color(0xFF78A083),
+        animationDuration: const Duration(milliseconds: 300),
+        index: _currentIndex,
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+
+          switch (_currentIndex) {
+           
+            case 0:
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      AddEditNotePage(folderId: widget.folder.folderId!),
+                ),
+              ).then((_) {
+                _refreshNotes();
+              });
+              break;
+         
+          }
+        },
+        items: <Widget>[
+         
+          Icon(Icons.add,
+              size: 30,
+              color:
+                  _currentIndex == 0 ? Color(0xFFFFFFFF) : Color(0xFFFFFFFF)),
+        
+        ],
       ),
     );
   }

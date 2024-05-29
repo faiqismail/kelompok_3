@@ -1,208 +1,176 @@
 import 'package:flutter/material.dart';
-import 'package:note_app/pages/navigasi.dart';
-
-
-class NotePage extends StatefulWidget {
+import 'package:provider/provider.dart';
+import 'theme_provider.dart';
+import 'halaman_folder.dart';
+class NotePage extends StatelessWidget {
   const NotePage({Key? key}) : super(key: key);
 
   @override
-  _NotePageState createState() => _NotePageState();
-}
-
-class _NotePageState extends State<NotePage> {
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        width: 430,
-        height: 932,
-        clipBehavior: Clip.antiAlias,
-        decoration: BoxDecoration(color: Color(0xFF35374B)),
-        child: Stack(
-          children: [
-            Positioned(
-              left: -7,
-              top: 0,
-              child: Container(
-                width: 437,
-                height: 58,
-                decoration: BoxDecoration(color: Color(0xFF344955)),
-                child: Stack(
-                  children: [],
-                ),
-              ),
-            ),
-            Positioned(
-              left: 47,
-              top: 321,
-              child: Container(
-                width: 335,
-                height: 77,
-                child: Stack(
-                  children: [
-                    Positioned(
-                      left: 0,
-                      top: 0,
-                      child: SizedBox(
-                        width: 335,
-                        height: 24,
-                        child: Text(
-                          'Selamat Datang',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Color(0xFF78A083),
-                            fontSize: 40,
-                            fontStyle: FontStyle.italic,
-                            fontFamily: 'Inter',
-                            fontWeight: FontWeight.w800,
-                            height: 0.01,
-                            letterSpacing: -0.24,
-                          ),
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      left: 26,
-                      top: 53,
-                      child: SizedBox(
-                        width: 283,
-                        height: 24,
-                        child: Text(
-                          'di TriNotes',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Color(0xFF78A083),
-                            fontSize: 40,
-                            fontFamily: 'Inter',
-                            fontWeight: FontWeight.w800,
-                            height: 0.01,
-                            letterSpacing: -0.24,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Positioned(
-              left: 71,
-              top: 434,
-              child: SizedBox(
-                width: 287,
-                height: 83,
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.brightness_6),
+            onPressed: () {
+              Provider.of<ThemeProvider>(context, listen: false).toggleTheme();
+            },
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        child: Center(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              Center(
                 child: Text(
-                  'Mulailah Mencatat Ide, ',
+                  'Selamat Datang\nDi TriNotes',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: Color(0xFF78A083),
-                    fontSize: 20,
-                    fontFamily: 'Inter',
-                    fontWeight: FontWeight.w300,
-                    height: 0.05,
-                    letterSpacing: -0.24,
+                    color: Theme.of(context).colorScheme.primary,
+                    fontSize: 30,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
-            ),
-            Positioned(
-              left: 71,
-              top: 452,
-              child: SizedBox(
-                width: 287,
-                height: 83,
+              SizedBox(height: 20),
+              Center(
                 child: Text(
-                  'pengingat, Dan Inspirasi Anda.',
+                  'CARA PEMAKAIAN APLIKASI',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: Color(0xFF78A083),
+                    color: Theme.of(context).colorScheme.secondary,
                     fontSize: 20,
-                    fontFamily: 'Inter',
-                    fontWeight: FontWeight.w300,
-                    height: 0.05,
-                    letterSpacing: -0.24,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
-            ),
-            Positioned(
-              left: 71,
-              top: 474,
-              child: SizedBox(
-                width: 287,
-                height: 83,
-                child: Text(
-                  ' Tetap Teratur, Tetap ',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Color(0xFF78A083),
-                    fontSize: 20,
-                    fontFamily: 'Inter',
-                    fontWeight: FontWeight.w300,
-                    height: 0.05,
-                    letterSpacing: -0.24,
-                  ),
-                ),
+              SizedBox(height: 10),
+              buildInstructionWithIcon(
+                context,
+                '1',
+                'Silakan untuk membuat folder terlebih dahulu dengan klik ikon + di navigasi.',
+                Icons.add,
               ),
-            ),
-            Positioned(
-              left: 71,
-              top: 494,
-              child: SizedBox(
-                width: 287,
-                height: 83,
-                child: Text(
-                  ' Terhubung. Selamat Mencatat!',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Color(0xFF78A083),
-                    fontSize: 20,
-                    fontFamily: 'Inter',
-                    fontWeight: FontWeight.w300,
-                    height: 0.05,
-                    letterSpacing: -0.24,
-                  ),
-                ),
+              buildInstructionWithIcon(
+                context,
+                '2',
+                'Lalu klik folder yang telah dibuat.',
+                Icons.folder,
               ),
-            ),
-            Positioned(
-              left: 148,
-              top: 554,
-              child: Container(
-                width: 134,
-                height: 38,
+              buildInstructionWithIcon(
+                context,
+                '3',
+                'Setelah itu, buat catatan dengan mengklik ikon + di navigasi.',
+                Icons.add,
+              ),
+              buildInstruction(
+                context,
+                '4',
+                'Folder dan catatan yang telah dihapus akan masuk ke riwayat hapus.',
+              ),
+              buildInstructionWithIcon(
+                context,
+                '5',
+                'Untuk mengembalikan data yang sudah dihapus, klik ikon pulihkan yang berada di riwayat hapus.',
+                Icons.restore,
+              ),
+              buildInstructionWithIcon(
+                context,
+                '6',
+                'Untuk menghapus data secara permanen, klik ikon delete yang berada di riwayat hapus.',
+                Icons.delete,
+              ),
+              buildInstructionWithIcon(
+                context,
+                '7',
+                'Jika ingin merubah ke ke dark mode maka pencet icon di pojok kanan atas di halaman start.',
+                Icons.brightness_6,
+              ),
+              SizedBox(height: 10),
+              Center(
                 child: ElevatedButton(
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => NextPage()),
+                      MaterialPageRoute(builder: (context) => CatatanPage()),
                     );
                   },
                   style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all<Color>(Color(0xFF50727B)),
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                        Theme.of(context).colorScheme.secondary),
                     shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                       RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30),
                       ),
                     ),
                   ),
-                  child: Text(
-                    'Start',
-                    style: TextStyle(
-                      color: Color(0xFFACDCB9),
-                      fontSize: 20,
-                      fontFamily: 'Roboto',
-                      fontWeight: FontWeight.w700,
-                      height: 0,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20.0, vertical: 10.0),
+                    child: Text(
+                      'Start',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontFamily: 'Roboto',
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
-}
 
+  Widget buildInstruction(BuildContext context, String number, String text, {IconData? icon}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        children: <Widget>[
+          CircleAvatar(
+            backgroundColor: Theme.of(context).colorScheme.secondary,
+            child: Text(
+              number,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 22,
+              ),
+            ),
+          ),
+          SizedBox(width: 10),
+          if (icon != null)
+            CircleAvatar(
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              child: Icon(
+                icon,
+                size: 25,
+                color: Colors.white,
+              ),
+            ),
+          SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.primary,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildInstructionWithIcon(BuildContext context, String number, String text, IconData icon) {
+    return buildInstruction(context, number, text, icon: icon);
+  }
+}
